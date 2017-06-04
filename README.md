@@ -5,11 +5,11 @@ a new control syntax to enable doing fizzbuzz in a DRY fashion.
 
 From the [c2 wiki](http://wiki.c2.com/?FizzBuzzTest):
 
->> I think Fizz-Buzz is "hard" for some programmers because (#1) it
->> doesn't fit into any of the patterns that were given to them in school
->> assignments, and (#2) it isn't possible to directly and simply
->> represent the necessary tests, without duplication, in just about any
->> commonly-used modern programming language.  ```
+> I think Fizz-Buzz is "hard" for some programmers because (#1) it
+> doesn't fit into any of the patterns that were given to them in school
+> assignments, and (#2) it isn't possible to directly and simply
+> represent the necessary tests, without duplication, in just about any
+> commonly-used modern programming language.  ```
 
 Here we are going after #2.  One of the fundamental control structures
 in Scheme is `cond`.  We can write a fizzbuzz using `cond` easily:
