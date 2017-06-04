@@ -12,7 +12,7 @@ I think Fizz-Buzz is "hard" for some programmers because (#1) it doesn't fit int
 Here we are going after #2.  One of the fundamental control structures
 in Scheme is `cond`.  We can write a fizzbuzz using `cond` easily:
 
-```scheme
+```racket
 ;; Non-macro way
 (define (notfunzzer n)
   (cond
@@ -35,7 +35,7 @@ Python try/except?  I will call this `cond-all`.
 
 We could then write something like this:
 
-```scheme
+```racket
 (define (fizzer n)
   (cond-all
    [(eq? (modulo n 3) 0) (display "fizz")]
@@ -51,7 +51,7 @@ Since Scheme has eager evaluation, we need to use a macro to write our
 define a function called `my-if` that uses `cond` to implement
 Scheme's `if` statement.
 
-```scheme
+```racket
 (define (my-if test truth falseness)
   (cond
     [test truth]
@@ -60,7 +60,7 @@ Scheme's `if` statement.
 
 We can test the function:
 
-```scheme
+```racket
 (printf "Calling displayln on the result of my-if:~n~n")
 (displayln (my-if (eq? 1 3) "one is three" "one is not three"))
 ```
@@ -76,7 +76,7 @@ one is not three
 However, since the arguments to `my-if` are evaluated before the function 
 is applied, we will end up in trouble if our functions have side effects:
 
-```scheme
+```racket
 (printf "~nInverting by passing displayln as my-if args:~n~n")
 (my-if (eq? 1 3)
        (displayln "one is three")
@@ -94,7 +94,7 @@ one is not three
 
 So we need to use a macro to write `my-if`:
 
-```scheme
+```racket
 (define-syntax my-macro-if
   (syntax-rules ()
     [(_ test-expr true-expr false-expr)
@@ -105,7 +105,7 @@ So we need to use a macro to write `my-if`:
 
 Using `my-macro-if` the code is rewritten before evaluation, running this:
 
-```scheme
+```racket
 (my-macro-if (eq? 1 3)
        (displayln "one is three")
        (displayln "one is not three"))
@@ -122,7 +122,7 @@ one is not three
 Here is the macro for `cond-all` that lets us create a DRY fizzbuzz
 instead of the initial wet one:
 
-```scheme
+```racket
 (define-syntax cond-all
   (syntax-rules (otherwise always)
     [(_ (test-expr then-expr) ... (otherwise otherwise-expr) (always always-expr))
