@@ -1,2 +1,139 @@
 # racket-fizzbuzz
-Using Scheme/Racket Macros to implement a DRY version of fizzbuzz :-3
+
+This exercise was to kick the tires on Scheme's macro facilities by introducing
+a new control syntax to enable doing fizzbuzz in a DRY fashion.
+
+From the [c2 wiki](http://wiki.c2.com/?FizzBuzzTest):
+
+```
+I think Fizz-Buzz is "hard" for some programmers because (#1) it doesn't fit into any of the patterns that were given to them in school assignments, and (#2) it isn't possible to directly and simply represent the necessary tests, without duplication, in just about any commonly-used modern programming language.
+```
+
+Here we are going after #2.  One of the fundamental control structures
+in Scheme is `cond`.  We can write a fizzbuzz using `cond` easily:
+
+```scheme
+;; Non-macro way
+(define (notfunzzer n)
+  (cond
+    ((and (eq? (modulo n 3) 0) (eq? (modulo n 5) 0)) (displayln "fizzbuzz"))
+    ((eq? (modulo n 3) 0) (displayln "fizz"))
+    ((eq? (modulo n 5) 0) (displayln "buzz"))
+    (else
+     (displayln n))))
+
+(for ([i (in-range 1 101)]) (notfunzzer i))
+```
+
+But, we are doing a terrible job of DRY here.  We do the modulo check
+twice and fizz/buzz both occur twice.  This is truly sub-optimal!
+
+What if `cond` ran all the 'then' part of every true test case, rather
+than returning after the first true test?  Also, what if we had a way
+to always run something at the end of the `cond` like `finally` in a
+Python try/except?  I will call this `cond-all`.
+
+We could then write something like this:
+
+```scheme
+(define (fizzer n)
+  (cond-all
+   [(eq? (modulo n 3) 0) (display "fizz")]
+   [(eq? (modulo n 5) 0) (display "buzz")]
+   [otherwise (display n)]
+   [always (displayln "")]))
+
+(for ([i (in-range 1 101)]) (fizzer i))
+```
+
+Since Scheme has eager evaluation, we need to use a macro to write our
+`cond-all`.  Let's do a quick example that demonstrates this.  I can
+define a function called `my-if` that uses `cond` to implement
+Scheme's `if` statement.
+
+```scheme
+(define (my-if test truth falseness)
+  (cond
+    [test truth]
+    [else falseness]))
+```
+
+We can test the function:
+
+```scheme
+(printf "Calling displayln on the result of my-if:~n~n")
+(displayln (my-if (eq? 1 3) "one is three" "one is not three"))
+```
+
+Which will output:
+
+```
+Calling displayln on the result of my-if:
+
+one is not three
+```
+
+However, since the arguments to `my-if` are evaluated before the function 
+is applied, we will end up in trouble if our functions have side effects:
+
+```scheme
+(printf "~nInverting by passing displayln as my-if args:~n~n")
+(my-if (eq? 1 3)
+       (displayln "one is three")
+       (displayln "one is not three"))
+```
+
+Which outputs:
+
+```
+Inverting by passing displayln as my-if args:
+
+one is three
+one is not three
+```
+
+So we need to use a macro to write `my-if`:
+
+```scheme
+(define-syntax my-macro-if
+  (syntax-rules ()
+    [(_ test-expr true-expr false-expr)
+     (cond
+       (test-expr true-expr)
+       (else false-expr))]))
+```
+
+Using `my-macro-if` the code is rewritten before evaluation, running this:
+
+```scheme
+(my-macro-if (eq? 1 3)
+       (displayln "one is three")
+       (displayln "one is not three"))
+```
+
+yields the correct result:
+
+```
+Macro my-macro-if with displayln args:
+
+one is not three
+```
+
+Here is the macro for `cond-all` that lets us create a DRY fizzbuzz
+instead of the initial wet one:
+
+```scheme
+(define-syntax cond-all
+  (syntax-rules (otherwise always)
+    [(_ (test-expr then-expr) ... (otherwise otherwise-expr) (always always-expr))
+     (begin
+       (let [(do_otherwise #t)]
+         (if test-expr
+             (begin
+               (set! do_otherwise #f)
+               then-expr)
+             (void)) ...
+       (if do_otherwise otherwise-expr (void))
+       always-expr))
+       ]))
+```
