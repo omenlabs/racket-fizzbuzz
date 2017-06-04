@@ -38,10 +38,10 @@ out that defining our own control structures is easy in Scheme.
 
 ## DIY Control structures
 
-Since Scheme has eager evaluation, we need to use a macro to write our
-`cond-all`.  Let's do a quick example that demonstrates this.  I can
-define a function called `my-if` that uses `cond` to implement
-Scheme's `if` statement.
+Since Scheme has eager evaluation, we need to use a macro to write any
+custom control syntax.  Let's do a quick example that demonstrates
+this.  I can define a function called `my-if` that uses `cond` to
+implement Scheme's `if` statement.
 
 ```racket
 (define (my-if test truth falseness)
